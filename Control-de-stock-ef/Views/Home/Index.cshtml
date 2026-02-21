@@ -1,5 +1,23 @@
-﻿@{
+﻿@model List<Producto>
+@{
     ViewData["Title"] = "Home Page";
+    //calculo de total de productos en stock
+    var cantidad = 0;
+    @foreach (var item in Model)
+    {
+        cantidad += item.StockActual;
+    }
+    //calculo de productos con stock bajo
+    //es decir, productos cuyo stock actual es menor o igual al stock minimo
+    var ProductosStockBajo = 0;
+    @foreach (var item in Model)
+    {
+        if (item.StockActual <= item.StockMinimo)
+        {
+            ProductosStockBajo += 1;
+        }
+    }
+   
 }
 
 <main class="">
@@ -23,14 +41,13 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 fw-medium">Total Productos</p>
-                            <h2 class="fw-bold mb-0">1,248</h2>
+                            <p class="text-muted mb-1 fw-medium">Total Stock Productos</p>
+                            <h2 class="fw-bold mb-0">@cantidad</h2>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-2 rounded">
                             <i class="bi bi-box-seam text-primary fs-4"></i>
                         </div>
                     </div>
-                   
                 </div>
             </div>
         </div>
@@ -41,7 +58,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1 fw-medium">Alerta de stock bajo</p>
-                            <h2 class="fw-bold mb-0 text-danger">14</h2>
+                            <h2 class="fw-bold mb-0 text-danger">@ProductosStockBajo</h2>
                         </div>
                         <div class="bg-danger bg-opacity-10 p-2 rounded">
                             <i class="bi bi-exclamation-triangle text-danger fs-4"></i>

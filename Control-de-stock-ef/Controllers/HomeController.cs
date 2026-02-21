@@ -1,21 +1,28 @@
 using System.Diagnostics;
+using Control_de_stock_ef.Data;
 using Control_de_stock_ef.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Control_de_stock_ef.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ControlDeStockDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger,ControlDeStockDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var productos = await _context.Productos
+                .Include(p => p.Proveedor)
+                .ToListAsync();
+            return View(productos);
         }
 
         public IActionResult Privacy()
