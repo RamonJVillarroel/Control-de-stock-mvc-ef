@@ -4,6 +4,7 @@ using Control_de_stock_ef.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Control_de_stock_ef.Migrations
 {
     [DbContext(typeof(ControlDeStockDbContext))]
-    partial class ControlDeStockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224173708_AgregarModuloVentasYClientes")]
+    partial class AgregarModuloVentasYClientes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
