@@ -44,10 +44,12 @@
             <div class="card card-widget border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
+               
                         <div>
-                            <p class="text-muted mb-1 fw-medium">Total Stock Productos</p>
-                            <h2 class="fw-bold mb-0">@cantidad</h2>
+                                <p class="text-muted mb-1 fw-medium">Total Stock Productos</p>
+                                <h2 class="fw-bold mb-0">@cantidad</h2>
                         </div>
+                       
                         <div class="bg-primary bg-opacity-10 p-2 rounded">
                             <i class="bi bi-box-seam text-primary fs-4"></i>
                         </div>
@@ -106,9 +108,10 @@
                                 <tr>
                                     <th class="px-4">Productos</th>
                                     <th>Categoria</th>
-                                    <th>Acción</th>
+                                    <th>Tipo Movimiento</th>
                                     <th>Cantidad</th>
                                     <th class="px-4">Fecha Movimiento</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,6 +129,11 @@
                                             @(mov.Tipo == TipoMovimiento.Entrada ? "+" : "-")@mov.Cantidad
                                         </td>                                       
                                         <td class="px-4 text-muted small">@mov.Fecha.ToString("dd/MM HH:mm")</td>
+                                        <td>
+                                            <a asp-controller="Transaccion" asp-action="Create" asp-route-productoId="@mov.ProductoId" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-exchange-alt"></i> Mover Stock
+                                            </a>
+                                        </td>
                                     </tr>
                                 }
                              

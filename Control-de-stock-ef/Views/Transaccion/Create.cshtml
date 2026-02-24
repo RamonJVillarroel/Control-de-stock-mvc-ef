@@ -1,0 +1,28 @@
+﻿@model Control_de_stock_ef.Models.TransaccionStock
+
+<h2>Registrar Movimiento de Stock</h2>
+
+<form asp-action="Create">
+    <div class="mb-3">
+        <label asp-for="ProductoId" class="form-label">Producto</label>
+        <select asp-for="ProductoId" class="form-control" asp-items="ViewBag.ProductoId"></select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Tipo" class="form-label">Tipo de Movimiento</label>
+        <select asp-for="Tipo" class="form-control" asp-items="Html.GetEnumSelectList<TipoMovimiento>()"></select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Cantidad" class="form-label"></label>
+        <input asp-for="Cantidad" class="form-control" type="number" min="1" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Motivo" class="form-label">Observaciones</label>
+        <textarea asp-for="Motivo" class="form-control" rows="2"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Movimiento</button>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

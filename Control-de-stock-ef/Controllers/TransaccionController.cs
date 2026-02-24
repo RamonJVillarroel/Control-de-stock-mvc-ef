@@ -1,7 +1,8 @@
 ﻿using Control_de_stock_ef.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Control_de_stock_ef.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 namespace Control_de_stock_ef.Controllers
 {
     public class TransaccionController : Controller
@@ -12,29 +13,48 @@ namespace Control_de_stock_ef.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+
+        // GET: Transaccion/Create
+        // Recibe productoId por si venís desde un botón "Cargar Stock" en la lista de productos
+        public IActionResult Create(int? productoId)
         {
+            ViewBag.ProductoId = new SelectList(_context.Productos, "Id", "Nombre", productoId);
             return View();
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TransaccionStock transaccion)
         {
             if (ModelState.IsValid)
             {
-                var producto = await _context.Productos.FindAsync(transaccion.ProductoId);
-                if (producto != null)
+                // Usamos una transacción de DB para que no haya fallos parciales
+                using var dbTransaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    // Actualizar el stock físico en la tabla Producto
-                    if (transaccion.Tipo == TipoMovimiento.Entrada)
-                        producto.StockActual += transaccion.Cantidad;
-                    else
-                        producto.StockActual -= transaccion.Cantidad;
+                    var producto = await _context.Productos.FindAsync(transaccion.ProductoId);
+                    if (producto != null)
+                    {
+                        if (transaccion.Tipo == TipoMovimiento.Entrada)
+                            producto.StockActual += transaccion.Cantidad;
+                        else
+                            producto.StockActual -= transaccion.Cantidad;
 
-                    _context.Add(transaccion);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                        _context.Add(transaccion);
+                        await _context.SaveChangesAsync();
+                        await dbTransaction.CommitAsync();
+
+                        return RedirectToAction("Index", "Home"); // Volver al Dashboard
+                    }
+                }
+                catch (Exception)
+                {
+                    await dbTransaction.RollbackAsync();
+                    ModelState.AddModelError("", "Error al procesar el movimiento de stock.");
                 }
             }
+
+            ViewBag.ProductoId = new SelectList(_context.Productos, "Id", "Nombre", transaccion.ProductoId);
             return View(transaccion);
         }
     }
