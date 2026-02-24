@@ -14,5 +14,6 @@ namespace Control_de_stock_ef.Data
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<TransaccionStock> TransaccionesStock { get; set; }
     }
 }

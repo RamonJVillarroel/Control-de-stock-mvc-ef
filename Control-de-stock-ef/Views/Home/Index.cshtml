@@ -108,48 +108,30 @@
                                     <th>Categoria</th>
                                     <th>Acción</th>
                                     <th>Cantidad</th>
-                                    <th class="text-end px-4">Fecha</th>
+                                    <th class="px-4">Fecha Movimiento</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Item 1 -->
-                                <tr>
-                                    <td class="px-4 fw-medium">MacBook Pro M2 14"</td>
-                                    <td>Electronics</td>
-                                    <td><span class="status-dot bg-success"></span> Restock</td>
-                                    <td class="text-success fw-bold">+10</td>
-                                    <td class="text-end px-4 text-muted small">Today, 10:45 AM</td>
-                                </tr>
-                                <!-- Item 2 -->
-                                <tr>
-                                    <td class="px-4 fw-medium">Ergonomic Office Chair</td>
-                                    <td>Furniture</td>
-                                    <td><span class="status-dot bg-warning"></span> Sale</td>
-                                    <td class="text-danger fw-bold">-2</td>
-                                    <td class="text-end px-4 text-muted small">Today, 09:12 AM</td>
-                                </tr>
-                                <!-- Item 3 -->
-                                <tr>
-                                    <td class="px-4 fw-medium">Wireless Mouse</td>
-                                    <td>Accessories</td>
-                                    <td><span class="status-dot bg-danger"></span> Adjust</td>
-                                    <td class="text-danger fw-bold">-5</td>
-                                    <td class="text-end px-4 text-muted small">Yesterday, 4:20 PM</td>
-                                </tr>
-                                <!-- Item 4 -->
-                                <tr>
-                                    <td class="px-4 fw-medium">USB-C Hub 7-in-1</td>
-                                    <td>Electronics</td>
-                                    <td><span class="status-dot bg-success"></span> Restock</td>
-                                    <td class="text-success fw-bold">+50</td>
-                                    <td class="text-end px-4 text-muted small">Yesterday, 11:30 AM</td>
-                                </tr>
+                                @foreach (var mov in Model.UltimosMovimientos)
+                                {
+                                    <tr>
+                                        <td class="px-4 fw-medium">@mov.Producto?.Nombre</td>
+                                        <td>@mov.Producto?.Categoria?.Nombre</td>
+                                        <td>
+                                            <span class="status-dot @(mov.Tipo == TipoMovimiento.Entrada ? "bg-success" : "bg-danger")"></span>
+                                            @mov.Tipo
+                                        </td>
+                                        <td class="@(mov.Tipo == TipoMovimiento.Entrada ? "text-success" : "text-danger") fw-bold">
+                                            @(mov.Tipo == TipoMovimiento.Entrada ? "+" : "-")@mov.Cantidad
+                                        </td>                                       
+                                        <td class="px-4 text-muted small">@mov.Fecha.ToString("dd/MM HH:mm")</td>
+                                    </tr>
+                                }
+                             
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="card-footer bg-white border-top text-center py-3">
-                    <a class="text-decoration-none small fw-bold" href="#">View All Movements</a>
                 </div>
             </div>
         </div>

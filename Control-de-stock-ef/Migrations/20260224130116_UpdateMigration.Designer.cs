@@ -4,6 +4,7 @@ using Control_de_stock_ef.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Control_de_stock_ef.Migrations
 {
     [DbContext(typeof(ControlDeStockDbContext))]
-    partial class ControlDeStockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224130116_UpdateMigration")]
+    partial class UpdateMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,6 +57,9 @@ namespace Control_de_stock_ef.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("FechaMovimiento")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -109,37 +115,6 @@ namespace Control_de_stock_ef.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Proveedores");
-                });
-
-            modelBuilder.Entity("Control_de_stock_ef.Models.TransaccionStock", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Motivo")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Tipo")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductoId");
-
-                    b.ToTable("TransaccionesStock");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -363,17 +338,6 @@ namespace Control_de_stock_ef.Migrations
                     b.Navigation("Proveedor");
                 });
 
-            modelBuilder.Entity("Control_de_stock_ef.Models.TransaccionStock", b =>
-                {
-                    b.HasOne("Control_de_stock_ef.Models.Producto", "Producto")
-                        .WithMany("Transacciones")
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -428,11 +392,6 @@ namespace Control_de_stock_ef.Migrations
             modelBuilder.Entity("Control_de_stock_ef.Models.Categoria", b =>
                 {
                     b.Navigation("Productos");
-                });
-
-            modelBuilder.Entity("Control_de_stock_ef.Models.Producto", b =>
-                {
-                    b.Navigation("Transacciones");
                 });
 
             modelBuilder.Entity("Control_de_stock_ef.Models.Proveedor", b =>

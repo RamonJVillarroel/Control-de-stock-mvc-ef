@@ -19,16 +19,28 @@ namespace Control_de_stock_ef.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // 1. Traemos los productos (podés limitarlos si el dashboard es solo un resumen)
+            var productos = await _context.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Proveedor)
+                .ToListAsync();
 
-            var productos = await _context.Productos.Include(p => p.Proveedor).ToListAsync();
             var proveedores = await _context.Proveedores.ToListAsync();
 
-            // Creamos el ViewModel que la vista está esperando
+            // 2. Traemos los 5 movimientos más nuevos de TODA la app
+            var ultimosMovimientos = await _context.TransaccionesStock
+                .Include(t => t.Producto) // Importante para mostrar el nombre del producto
+                .OrderByDescending(t => t.Fecha)
+                .Take(5)
+                .ToListAsync();
+
             var viewModel = new _ProveedorProductoViewModel
             {
-                Productos =  productos,
-                Proveedores =  proveedores,
+                Productos = productos,
+                Proveedores = proveedores,
+                UltimosMovimientos = ultimosMovimientos // Los pasamos a la vista
             };
+
             return View(viewModel);
         }
 

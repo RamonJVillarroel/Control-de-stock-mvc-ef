@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Control_de_stock_ef.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigrations : Migration
+    public partial class UpdateMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -193,11 +193,12 @@ namespace Control_de_stock_ef.Migrations
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Sku = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Precio = table.Column<float>(type: "real", nullable: false),
+                    Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     StockActual = table.Column<int>(type: "int", nullable: false),
                     StockMinimo = table.Column<int>(type: "int", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
-                    ProveedorId = table.Column<int>(type: "int", nullable: false)
+                    ProveedorId = table.Column<int>(type: "int", nullable: false),
+                    FechaMovimiento = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -57,7 +57,7 @@ namespace Control_de_stock_ef.Controllers
         // POST: Productos/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Sku,Precio,StockActual,StockMinimo,CategoriaId,ProveedorId")] Producto producto)
         {
@@ -70,8 +70,51 @@ namespace Control_de_stock_ef.Controllers
             ViewData["CategoriaId"] = new SelectList(_context.Categorias, "Id", "Nombre", producto.CategoriaId);
             ViewData["ProveedorId"] = new SelectList(_context.Proveedores, "Id", "Nombre", producto.ProveedorId);
             return View(producto);
-        }
+        }*/
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Sku,Precio,StockActual,StockMinimo,CategoriaId,ProveedorId")] Producto producto)
+        {
+            if (ModelState.IsValid)
+            {
+                // Iniciamos una transacción para que ambas inserciones sean atómicas
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // 1. Guardamos el producto primero
+                    _context.Add(producto);
+                    await _context.SaveChangesAsync();
 
+                    // 2. Creamos la transacción de stock inicial
+                    var stockInicial = new TransaccionStock
+                    {
+                        ProductoId = producto.Id, // EF ya llenó el Id después del SaveChanges anterior
+                        Cantidad = producto.StockActual,
+                        Tipo = TipoMovimiento.Entrada,
+                        Fecha = DateTime.Now,
+                        Motivo = "Carga inicial de producto"
+                    };
+
+                    _context.TransaccionesStock.Add(stockInicial);
+                    await _context.SaveChangesAsync();
+
+                    // 3. Confirmamos los cambios en la DB
+                    await transaction.CommitAsync();
+
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception)
+                {
+                    // Si algo falla (ej. error de base de datos), deshacemos todo
+                    await transaction.RollbackAsync();
+                    ModelState.AddModelError("", "No se pudo crear el producto. Intente nuevamente.");
+                }
+            }
+
+            ViewData["CategoriaId"] = new SelectList(_context.Categorias, "Id", "Nombre", producto.CategoriaId);
+            ViewData["ProveedorId"] = new SelectList(_context.Proveedores, "Id", "Nombre", producto.ProveedorId);
+            return View(producto);
+        }
         // GET: Productos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
