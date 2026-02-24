@@ -18,12 +18,45 @@ namespace Control_de_stock_ef.Controllers
         {
             _context = context;
         }
-
+       
         // GET: Productos
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
-            var controlDeStockDbContext = _context.Productos.Include(p => p.Categoria).Include(p => p.Proveedor);
-            return View(await controlDeStockDbContext.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["SkuSortParm"] = sortOrder == "sku" ? "sku_desc" : "sku";
+            ViewData["PrecioSortParm"] = sortOrder == "precio" ? "precio_desc" : "precio";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            var productos = _context.Productos.Include(p => p.Categoria).Include(p => p.Proveedor).AsQueryable();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                productos = productos.Where(p => p.Nombre.Contains(searchString) || p.Sku.Contains(searchString) || p.Categoria.Nombre.Contains(searchString) || p.Proveedor.Nombre.Contains(searchString));
+            }
+
+            productos = sortOrder switch
+            {
+                "name_desc" => productos.OrderByDescending(p => p.Nombre),
+                "sku" => productos.OrderBy(p => p.Sku),
+                "sku_desc" => productos.OrderByDescending(p => p.Sku),
+                "precio" => productos.OrderBy(p => p.Precio),
+                "precio_desc" => productos.OrderByDescending(p => p.Precio),
+                _ => productos.OrderBy(p => p.Nombre),
+            };
+
+            int pageSize = 5;
+            return View(await PaginatedList<Producto>.CreateAsync(productos.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Productos/Details/5

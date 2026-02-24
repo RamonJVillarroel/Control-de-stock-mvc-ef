@@ -1,38 +1,48 @@
-﻿@model IEnumerable<Control_de_stock_ef.Models.Producto>
+﻿@model Control_de_stock_ef.Models.PaginatedList<Control_de_stock_ef.Models.Producto>
 
 @{
     ViewData["Title"] = "Index";
+    var currentSort = ViewData["CurrentSort"] as string;
+    var currentFilter = ViewData["CurrentFilter"] as string;
 }
 
 <h1>Listado de productos</h1>
 
-<p>
-    <a asp-action="Create">Crear nuevo producto</a>
-</p>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form asp-action="Index" method="get" class="d-flex" role="search">
+            <input type="search" name="searchString" value="@currentFilter" class="form-control me-2" placeholder="Buscar por nombre, SKU, categoría o proveedor" />
+            <button type="submit" class="btn btn-outline-primary">Buscar</button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Create" class="btn btn-primary">Crear nuevo producto</a>
+    </div>
+</div>
+
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-      
-            <th>
-                @Html.DisplayNameFor(model => model.Sku)
+                <a asp-action="Index" asp-route-sortOrder="@(String.IsNullOrEmpty(currentSort) ? "name_desc" : "")" asp-route-currentFilter="@currentFilter">@Html.DisplayNameFor(model => model[0].Nombre)</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Precio)
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["SkuSortParm"])" asp-route-currentFilter="@currentFilter">@Html.DisplayNameFor(model => model[0].Sku)</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StockActual)
+                <a asp-action="Index" asp-route-sortOrder="@(ViewData["PrecioSortParm"])" asp-route-currentFilter="@currentFilter">@Html.DisplayNameFor(model => model[0].Precio)</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StockMinimo)
+                @Html.DisplayNameFor(model => model[0].StockActual)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Categoria)
+                @Html.DisplayNameFor(model => model[0].StockMinimo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Proveedor)
+                @Html.DisplayNameFor(model => model[0].Categoria)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].Proveedor)
             </th>
             <th></th>
         </tr>
@@ -43,7 +53,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Nombre)
             </td>
-        
+            
             <td>
                 @Html.DisplayFor(modelItem => item.Sku)
             </td>
@@ -71,3 +81,20 @@
 }
     </tbody>
 </table>
+
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)" asp-route-sortOrder="@currentSort" asp-route-currentFilter="@currentFilter">Anterior</a>
+        </li>
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-sortOrder="@currentSort" asp-route-currentFilter="@currentFilter">@i</a>
+            </li>
+        }
+        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)" asp-route-sortOrder="@currentSort" asp-route-currentFilter="@currentFilter">Siguiente</a>
+        </li>
+    </ul>
+</nav>
