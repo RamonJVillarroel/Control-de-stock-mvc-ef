@@ -19,10 +19,17 @@ namespace Control_de_stock_ef.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var productos = await _context.Productos
-                .Include(p => p.Proveedor)
-                .ToListAsync();
-            return View(productos);
+
+            var productos = await _context.Productos.Include(p => p.Proveedor).ToListAsync();
+            var proveedores = await _context.Proveedores.ToListAsync();
+
+            // Creamos el ViewModel que la vista está esperando
+            var viewModel = new _ProveedorProductoViewModel
+            {
+                Productos =  productos,
+                Proveedores =  proveedores,
+            };
+            return View(viewModel);
         }
 
         public IActionResult Privacy()
