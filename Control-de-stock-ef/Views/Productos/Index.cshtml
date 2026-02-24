@@ -48,37 +48,43 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nombre)
-            </td>
-            
-            <td>
-                @Html.DisplayFor(modelItem => item.Sku)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Precio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StockActual)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StockMinimo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Categoria.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Proveedor.Nombre)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nombre)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.Sku)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Precio)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StockActual)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StockMinimo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Categoria.Nombre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Proveedor.Nombre)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+                <td>
+                    <a asp-controller="Transaccion" asp-action="Create" asp-route-productoId="@item.Id" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-exchange-alt"></i> Mover Stock
+                    </a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
 
