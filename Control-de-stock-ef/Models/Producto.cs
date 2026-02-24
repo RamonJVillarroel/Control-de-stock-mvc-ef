@@ -15,7 +15,6 @@ namespace Control_de_stock_ef.Models
         [Required]
         [StringLength(20)]
         public string Sku { get; set; }
-
         public float Precio { get; set; }
         [Required]
         public int StockActual { get; set; }
@@ -27,7 +26,6 @@ namespace Control_de_stock_ef.Models
         [DisplayName("Proveedor")]
         public int ProveedorId { get; set; }
         public Proveedor? Proveedor { get; set; }
-
     }
 
     class _ProveedorProductoViewModel
