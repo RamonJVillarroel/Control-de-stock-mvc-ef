@@ -1,0 +1,179 @@
+﻿@model Control_de_stock_ef.Models.Venta
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Nueva Venta</h2>
+            <span class="badge bg-light text-primary">Operación de Caja</span>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" id="ventaForm">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ClienteId" class="form-label fw-bold">Cliente</label>
+                        <select asp-for="ClienteId" class="form-control" asp-items="ViewBag.ClienteId" required>
+                            <option value="">-- Seleccionar Cliente --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MetodoPago" class="form-label fw-bold">Método de Pago</label>
+                        <select asp-for="MetodoPago" class="form-control">
+                            <option value="Contado">Contado</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Credito">A Crédito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-barcode"></i> Cargar Productos</h5>
+                        <div class="row align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label">Seleccione Producto</label>
+                                <select id="selectProducto" class="form-control">
+                                    <option value="">-- Buscar por Nombre o SKU --</option>
+                                    @foreach (var p in ViewBag.Productos)
+                                    {
+                                        <option value="@p.Id" data-precio="@p.Precio" data-stock="@p.StockActual">
+                                            @p.Nombre (Stock: @p.StockActual) - $@p.Precio
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Cantidad</label>
+                                <input type="number" id="inputCantidad" class="form-control" value="1" min="1" />
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" id="btnAgregar" class="btn btn-success w-100">
+                                    <i class="fas fa-plus-circle"></i> Agregar al Carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table table-hover mt-3" id="tablaDetalles">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">TOTAL A PAGAR:</td>
+                            <td class="text-end fw-bold text-primary h4">$<span id="totalVenta">0.00</span></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check-double"></i> Finalizar Venta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let totalGeneral = 0;
+
+        document.getElementById("btnAgregar").addEventListener("click", function () {
+            let select = document.getElementById("selectProducto");
+            let productoId = select.value;
+            let option = select.options[select.selectedIndex];
+
+            if (productoId === "") {
+                alert("Por favor, seleccione un producto.");
+                return;
+            }
+
+            let nombre = option.text.split(" (")[0];
+            let precio = parseFloat(option.getAttribute("data-precio"));
+            let stock = parseInt(option.getAttribute("data-stock"));
+            let cantidad = parseInt(document.getElementById("inputCantidad").value);
+
+            // Validación de Stock
+            if (cantidad > stock) {
+                alert(`Stock insuficiente. Solo quedan ${stock} unidades.`);
+                return;
+            }
+
+            if (cantidad <= 0) {
+                alert("La cantidad debe ser mayor a 0.");
+                return;
+            }
+
+            let subtotal = precio * cantidad;
+
+            // Creamos la fila de la tabla
+            let fila = `
+                <tr>
+                    <td>
+                        ${nombre}
+                        <input type="hidden" name="productoId" value="${productoId}" />
+                    </td>
+                    <td class="text-center">
+                        ${cantidad}
+                        <input type="hidden" name="cantidad" value="${cantidad}" />
+                    </td>
+                    <td class="text-end">$${precio.toFixed(2)}</td>
+                    <td class="text-end subtotal-col">$${subtotal.toFixed(2)}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-borrar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+
+            document.querySelector("#tablaDetalles tbody").insertAdjacentHTML("beforeend", fila);
+
+            actualizarTotal(subtotal);
+            limpiarControles();
+        });
+
+        // Evento para borrar filas y actualizar el total
+        document.querySelector("#tablaDetalles tbody").addEventListener("click", function (e) {
+            if (e.target.closest(".btn-borrar")) {
+                let fila = e.target.closest("tr");
+                let subtotal = parseFloat(fila.querySelector(".subtotal-col").innerText.replace('$', ''));
+                actualizarTotal(-subtotal);
+                fila.remove();
+            }
+        });
+
+        function actualizarTotal(monto) {
+            totalGeneral += monto;
+            document.getElementById("totalVenta").innerText = totalGeneral.toFixed(2);
+        }
+
+        function limpiarControles() {
+            document.getElementById("selectProducto").value = "";
+            document.getElementById("inputCantidad").value = 1;
+        }
+
+        // Validación final antes de enviar
+        document.getElementById("ventaForm").onsubmit = function() {
+            let filas = document.querySelectorAll("#tablaDetalles tbody tr");
+            if (filas.length === 0) {
+                alert("Debe agregar al menos un producto a la venta.");
+                return false;
+            }
+            return true;
+        };
+    </script>
+}
