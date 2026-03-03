@@ -19,7 +19,7 @@ namespace Control_de_stock_ef.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // 1. Traemos los productos (podés limitarlos si el dashboard es solo un resumen)
+            
             var productos = await _context.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Proveedor)
@@ -27,21 +27,41 @@ namespace Control_de_stock_ef.Controllers
 
             var proveedores = await _context.Proveedores.ToListAsync();
 
-            // 2. Traemos los 5 movimientos más nuevos de TODA la app
             var ultimosMovimientos = await _context.TransaccionesStock
-                .Include(t => t.Producto) // Importante para mostrar el nombre del producto
+                .Include(t => t.Producto)
                 .OrderByDescending(t => t.Fecha)
                 .Take(5)
                 .ToListAsync();
 
-            var viewModel = new _ProveedorProductoViewModel
+            var datosInventario = new _ProveedorProductoViewModel
             {
                 Productos = productos,
                 Proveedores = proveedores,
-                UltimosMovimientos = ultimosMovimientos // Los pasamos a la vista
+                UltimosMovimientos = ultimosMovimientos
             };
 
-            return View(viewModel);
+            
+            var ventas = await _context.Ventas
+                .Include(v => v.Cliente)
+                .OrderByDescending(v => v.FechaVenta)
+                .ToListAsync();
+
+            var datosVentas = new DashboardVentasVM
+            {
+                TotalVentasCount = ventas.Count,
+                IngresosTotales = ventas.Sum(v => v.PrecioTotal),
+                TicketPromedio = ventas.Count > 0 ? ventas.Average(v => v.PrecioTotal) : 0,
+                VentasRecientes = ventas.Take(5).ToList()
+            };
+
+            
+            var viewModelFinal = new HomeDashboardVM
+            {
+                Inventario = datosInventario,
+                Ventas = datosVentas
+            };
+
+            return View(viewModelFinal);
         }
 
         public IActionResult Privacy()
@@ -54,5 +74,7 @@ namespace Control_de_stock_ef.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+       
     }
 }

@@ -2,6 +2,7 @@
 using Control_de_stock_ef.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Control_de_stock_ef.Controllers
 {
@@ -114,5 +115,6 @@ namespace Control_de_stock_ef.Controllers
             ViewData["ClienteId"] = new SelectList(_context.Clientes, "Id", "Nombre", venta.ClienteId);
             return View(venta);
         }
+        
     }
 }

@@ -35,7 +35,7 @@ namespace Control_de_stock_ef.Models
         // public string TipoMovimientoId { get; set; }
     }
 
-    class _ProveedorProductoViewModel
+    public class _ProveedorProductoViewModel
     {
         public List<Producto> Productos { get; set; } = new List<Producto>();
         public List<Proveedor> Proveedores { get; set; } = new List<Proveedor>();

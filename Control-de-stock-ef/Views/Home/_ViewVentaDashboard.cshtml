@@ -1,0 +1,82 @@
+﻿@model DashboardVentasVM
+@{
+}
+<main class="container mt-2">
+    <h1 class="h2">Dashboard de Ventas</h1>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            @* Ajustado a col-md-4 para que entren 3 en línea *@
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-1">Total Ventas</p>
+                <h2 class="fw-bold mb-0">@Model.TotalVentasCount</h2>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background-color: rgba(25, 135, 84, 0.1); color: var(--bs-success);">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-1">Ingresos Totales</p>
+                <h2 class="fw-bold mb-0">@Model.IngresosTotales.ToString("C")</h2>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="stat-icon" style="background-color: rgba(220, 53, 69, 0.1); color: var(--bs-danger);">
+                        <span class="material-symbols-outlined">receipt</span>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-1">Ticket Promedio</p>
+                <h2 class="fw-bold mb-0">@Model.TicketPromedio.ToString("C")</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="fw-bold mb-0">Ventas Recientes</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Fecha</th>
+                            @* <th class="text-end pe-4">Acción</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var venta in Model.VentasRecientes)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-medium text-primary">#@venta.Id</td>
+                                <td>@(venta.Cliente?.Nombre ?? "Consumidor Final")</td>
+                                <td class="fw-semibold">@venta.PrecioTotal.ToString("C")</td>
+                                <td>@venta.FechaVenta.ToString("dd/MM/yyyy")</td>
+                                @*<td class="text-end pe-4">
+                                    <a asp-action="Details" asp-route-id="@venta.Id" class="btn btn-sm text-secondary">
+                                        <span class="material-symbols-outlined">visibility</span>
+                                    </a>
+                                </td>*@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
