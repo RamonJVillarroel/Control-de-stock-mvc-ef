@@ -1,20 +1,25 @@
-using System.Diagnostics;
 using Control_de_stock_ef.Data;
 using Control_de_stock_ef.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Control_de_stock_ef.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ControlDeStockDbContext _context;
+        private readonly UserManager<Usuario> _userManager;
 
-        public HomeController(ILogger<HomeController> logger,ControlDeStockDbContext context)
+        public HomeController(ILogger<HomeController> logger,ControlDeStockDbContext context, UserManager<Usuario> userManager )
         {
             _logger = logger;
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -23,14 +28,18 @@ namespace Control_de_stock_ef.Controllers
             var productos = await _context.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Proveedor)
+                .Where(p=> p.UsuarioId == _userManager.GetUserId(User))
                 .ToListAsync();
 
-            var proveedores = await _context.Proveedores.ToListAsync();
+            var proveedores = await _context.Proveedores
+                .Where(p => p.UsuarioId == _userManager.GetUserId(User))
+                .ToListAsync();
 
             var ultimosMovimientos = await _context.TransaccionesStock
                 .Include(t => t.Producto)
                 .OrderByDescending(t => t.Fecha)
                 .Take(5)
+                .Where(t => t.UsuarioId == _userManager.GetUserId(User))
                 .ToListAsync();
 
             var datosInventario = new _ProveedorProductoViewModel
@@ -44,6 +53,7 @@ namespace Control_de_stock_ef.Controllers
             var ventas = await _context.Ventas
                 .Include(v => v.Cliente)
                 .OrderByDescending(v => v.FechaVenta)
+                .Where(v => v.UsuarioId == _userManager.GetUserId(User))
                 .ToListAsync();
 
             var datosVentas = new DashboardVentasVM

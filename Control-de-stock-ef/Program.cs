@@ -1,4 +1,5 @@
 using Control_de_stock_ef.Data;
+using Control_de_stock_ef.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,36 +12,40 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ControlDeStockDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 
-//servicio de autenticacion identity ef
-builder.Services.AddDefaultIdentity<IdentityUser>(
-    options =>
-    {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 3;
-        options.Password.RequireUppercase = false;
-    }
-    )
-    .AddEntityFrameworkStores<ControlDeStockDbContext>();
+builder.Services.AddIdentityCore<Usuario>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 3;
+    options.Password.RequireUppercase = false;
+}
+)
+    .AddRoles<IdentityRole>()// se tiene que agregar a mano cuando se usa el solo el core de identity
+    .AddEntityFrameworkStores<ControlDeStockDbContext>()
+    .AddSignInManager();
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultScheme = IdentityConstants.ApplicationScheme;
+})
+.AddIdentityCookies();
 builder.Services.ConfigureApplicationCookie(o =>
 {
     o.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     o.SlidingExpiration = true;
-    o.LoginPath = "/Identity/Account/Login";
-    o.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    o.LoginPath = "/Usuario/Login";
+    o.AccessDeniedPath = "/Usuario/AccessDenied";
 
 });
-builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
 //invocar el seeder al iniciar la app
-using (var scope = app.Services.CreateScope())
+/*using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ControlDeStockDbContext>();
     DbSeeder.Seed(context);
-}
+}*/
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -62,5 +67,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-app.MapRazorPages();
 app.Run();

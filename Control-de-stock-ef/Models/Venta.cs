@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Control_de_stock_ef.Models
 {
@@ -12,5 +13,10 @@ namespace Control_de_stock_ef.Models
         public decimal PrecioTotal { get; set; }
         public DateTime FechaVenta { get; set; }
         public virtual ICollection<DetalleVenta> Detalles { get; set; } = new List<DetalleVenta>();
+        [Required]
+        public string UsuarioId { get; set; } // FK (Identity usa string para el ID)
+
+        [ForeignKey("UsuarioId")]
+        public Usuario? Usuario { get; set; } // Propiedad de navegación
     }
 }

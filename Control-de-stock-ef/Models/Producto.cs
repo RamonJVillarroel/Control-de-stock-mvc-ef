@@ -31,6 +31,12 @@ namespace Control_de_stock_ef.Models
         public Proveedor? Proveedor { get; set; }
         public virtual ICollection<TransaccionStock> Transacciones { get; set; } = new List<TransaccionStock>();
 
+        [Required]
+        public string UsuarioId { get; set; } // FK (Identity usa string para el ID)
+
+        [ForeignKey("UsuarioId")]
+        public Usuario? Usuario { get; set; } // Propiedad de navegación
+
         // public DateTime FechaMovimiento { get; set; } = DateTime.Now;
         // public string TipoMovimientoId { get; set; }
     }

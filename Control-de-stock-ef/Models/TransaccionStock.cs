@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Control_de_stock_ef.Models
 {
@@ -35,5 +36,10 @@ namespace Control_de_stock_ef.Models
         [StringLength(250)]
         [DisplayName("Motivo u Observación")]
         public string? Motivo { get; set; }
+        [Required]
+        public string UsuarioId { get; set; } // FK (Identity usa string para el ID)
+
+        [ForeignKey("UsuarioId")]
+        public Usuario? Usuario { get; set; } // Propiedad de navegación
     }
 }

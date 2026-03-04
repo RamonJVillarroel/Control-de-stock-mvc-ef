@@ -1,34 +1,41 @@
 ﻿using Control_de_stock_ef.Data;
 using Control_de_stock_ef.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Control_de_stock_ef.Controllers
 {
+    [Authorize]
     public class VentasController : Controller
     {
         private readonly ControlDeStockDbContext _context;
+        private readonly UserManager<Usuario> _userManager;
 
-        public VentasController(ControlDeStockDbContext context)
+        public VentasController(ControlDeStockDbContext context, UserManager<Usuario> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Ventas/Create
         public IActionResult Create()
         {
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "Id", "Nombre");
+            ViewData["ClienteId"] = new SelectList(_context.Clientes.Where(p=>p.UsuarioId==_userManager.GetUserId(User)), "Id", "Nombre");
             
             var productos = _context.Productos
                 .Select(p => new {
                     p.Id,
                     p.Nombre,
                     p.Precio,
-                    p.StockActual
-                }).ToList();
+                    p.StockActual,
+                    p.UsuarioId
+                })
+                .ToList();
 
-            ViewBag.Productos = productos;
+            ViewBag.Productos = productos.Where(p => p.UsuarioId == _userManager.GetUserId(User));
             return View();
         }
 
@@ -36,6 +43,9 @@ namespace Control_de_stock_ef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Venta venta, int[] productoId, int[] cantidad)
         {
+            var userId = _userManager.GetUserId(User);
+            venta.UsuarioId = userId;
+            ModelState.Remove("UsuarioId");
             if (productoId == null || productoId.Length == 0)
             {
                 ModelState.AddModelError("", "Debes agregar al menos un producto a la venta.");
@@ -70,7 +80,8 @@ namespace Control_de_stock_ef.Controllers
                             ProductoId = pId,
                             Cantidad = cant,
                             PrecioUnitario = producto.Precio,
-                            Venta = venta
+                            Venta = venta,
+                            UsuarioId = userId
                         };
                         _context.DetallesVenta.Add(detalle);
 
@@ -81,7 +92,8 @@ namespace Control_de_stock_ef.Controllers
                             Cantidad = cant,
                             Tipo = TipoMovimiento.Salida,
                             Fecha = DateTime.Now,
-                            Motivo = $"Venta Factura #{venta.Id}"
+                            Motivo = $"Venta Factura #{venta.Id}",
+                            UsuarioId = userId
                         };
                         _context.TransaccionesStock.Add(movimiento);
 

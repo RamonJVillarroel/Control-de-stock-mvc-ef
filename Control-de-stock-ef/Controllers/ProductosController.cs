@@ -1,22 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Control_de_stock_ef.Data;
+using Control_de_stock_ef.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Control_de_stock_ef.Data;
-using Control_de_stock_ef.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Control_de_stock_ef.Controllers
 {
+    [Authorize]
     public class ProductosController : Controller
     {
         private readonly ControlDeStockDbContext _context;
+        private readonly UserManager<Usuario> _userManager;
 
-        public ProductosController(ControlDeStockDbContext context)
+        public ProductosController(ControlDeStockDbContext context, UserManager<Usuario> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
        
         // GET: Productos
@@ -26,7 +31,7 @@ namespace Control_de_stock_ef.Controllers
             ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewData["SkuSortParm"] = sortOrder == "sku" ? "sku_desc" : "sku";
             ViewData["PrecioSortParm"] = sortOrder == "precio" ? "precio_desc" : "precio";
-
+            
             if (searchString != null)
             {
                 pageNumber = 1;
@@ -38,7 +43,11 @@ namespace Control_de_stock_ef.Controllers
 
             ViewData["CurrentFilter"] = searchString;
 
-            var productos = _context.Productos.Include(p => p.Categoria).Include(p => p.Proveedor).AsQueryable();
+            var productos = _context.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Proveedor)
+                .Where(p => p.UsuarioId == _userManager.GetUserId(User))
+                .AsQueryable();
 
             if (!String.IsNullOrEmpty(searchString))
             {
@@ -82,8 +91,12 @@ namespace Control_de_stock_ef.Controllers
         // GET: Productos/Create
         public IActionResult Create()
         {
-            ViewData["CategoriaId"] = new SelectList(_context.Categorias, "Id", "Nombre");
-            ViewData["ProveedorId"] = new SelectList(_context.Proveedores, "Id", "Nombre");
+            var userId = _userManager.GetUserId(User);
+
+            // Filtramos para que solo vea SUS categorías y SUS proveedores
+            ViewData["CategoriaId"] = new SelectList(_context.Categorias.Where(c => c.UsuarioId == userId), "Id", "Nombre");
+            ViewData["ProveedorId"] = new SelectList(_context.Proveedores.Where(p => p.UsuarioId == userId), "Id", "Nombre");
+
             return View();
         }
 
@@ -106,8 +119,11 @@ namespace Control_de_stock_ef.Controllers
         }*/
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Sku,Precio,StockActual,StockMinimo,CategoriaId,ProveedorId")] Producto producto)
+        public async Task<IActionResult> Create(Producto producto)
         {
+            var userId = _userManager.GetUserId(User);
+            producto.UsuarioId = userId;
+            ModelState.Remove("UsuarioId");
             if (ModelState.IsValid)
             {
                 // Iniciamos una transacción para que ambas inserciones sean atómicas
@@ -125,7 +141,8 @@ namespace Control_de_stock_ef.Controllers
                         Cantidad = producto.StockActual,
                         Tipo = TipoMovimiento.Entrada,
                         Fecha = DateTime.Now,
-                        Motivo = "Carga inicial de producto"
+                        Motivo = "Carga inicial de producto",
+                        UsuarioId = producto.UsuarioId
                     };
 
                     _context.TransaccionesStock.Add(stockInicial);

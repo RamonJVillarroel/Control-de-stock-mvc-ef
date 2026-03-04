@@ -1,28 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Control_de_stock_ef.Data;
+using Control_de_stock_ef.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Control_de_stock_ef.Data;
-using Control_de_stock_ef.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Control_de_stock_ef.Controllers
 {
+    [Authorize]
     public class ProveedoresController : Controller
     {
         private readonly ControlDeStockDbContext _context;
-
-        public ProveedoresController(ControlDeStockDbContext context)
+        private readonly UserManager<Usuario> _userManager;
+        public ProveedoresController(ControlDeStockDbContext context, UserManager<Usuario> userManager )
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Proveedores
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Proveedores.ToListAsync());
+            var proveedores = await _context.Proveedores
+                .Where(p => p.UsuarioId == _userManager.GetUserId(User))
+                .ToListAsync();
+
+            return View(proveedores);
         }
 
         // GET: Proveedores/Details/5
@@ -54,8 +62,11 @@ namespace Control_de_stock_ef.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Telefono,Email")] Proveedor proveedor)
+        public async Task<IActionResult> Create(Proveedor proveedor)
         {
+            var userId = _userManager.GetUserId(User);
+            proveedor.UsuarioId = userId;
+            ModelState.Remove("UsuarioId");
             if (ModelState.IsValid)
             {
                 _context.Add(proveedor);
