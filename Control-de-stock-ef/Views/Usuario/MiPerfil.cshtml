@@ -101,12 +101,12 @@
                     *@
                     <form method="post" enctype="multipart/form-data">
                         <div class="text-center mb-4">
-                            <div class="profile-img-container mb-3">
+                              <div class="profile-img-container mb-3">
                                 <img alt="Foto de perfil" id="profileImage" class="profile-img" src="@Model.ImagenUrlPerfil" />
-                                <button type="button" class="edit-btn" onclick="document.getElementById('ImagenPerfil').click()">
+                             @*   <button type="button" class="edit-btn" onclick="document.getElementById('ImagenPerfil').click()">
                                     <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
                                 </button>
-                                <input type="file" asp-for="ImagenPerfil" accept="image/png,image/jpeg,image/webp" class="form-control" onchange="previewImage(this)" />
+                                <input type="file" asp-for="ImagenPerfil" accept="image/png,image/jpeg,image/webp" class="form-control" onchange="previewImage(this)" />*@
                             </div>
                             <h2 class="fs-2 fw-bold mb-1">@Model.Nombre @Model.Apellido</h2>
                             <p class="text-secondary">@Model.Email</p>

@@ -16,5 +16,7 @@ namespace Control_de_stock_ef.Models
 
         [ForeignKey("UsuarioId")]
         public Usuario? Usuario { get; set; } // Propiedad de navegación
+
+        public List<Venta> Ventas { get; set; }
     }
 }

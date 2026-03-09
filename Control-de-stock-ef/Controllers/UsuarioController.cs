@@ -158,6 +158,7 @@ namespace Control_de_stock_ef.Controllers
                 if (resultado.Succeeded)
                 {
                     ViewBag.Mensaje = "Perfil actualizado con éxito.";
+                    usuarioVM.Email = usuarioActual.Email;
                     return View(usuarioVM);
                 }
                 else
@@ -167,7 +168,9 @@ namespace Control_de_stock_ef.Controllers
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
                 }
+                usuarioVM.Email = usuarioActual.Email;
             }
+            
             return View(usuarioVM);
         }
 

@@ -94,8 +94,11 @@ namespace Control_de_stock_ef.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Telefono,Email,Monto,EstadoCliente")] Cliente cliente)
+        public async Task<IActionResult> Edit(int id,Cliente cliente)
         {
+            var userId = _userManager.GetUserId(User);
+            cliente.UsuarioId = userId;
+            ModelState.Remove("UsuarioId");
             if (id != cliente.Id)
             {
                 return NotFound();
@@ -147,9 +150,14 @@ namespace Control_de_stock_ef.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cliente = await _context.Clientes.FindAsync(id);
+            var cliente = await _context.Clientes
+                .Include(C => C.Ventas) // Cargar las ventas del cliente
+                .FirstOrDefaultAsync(c => c.Id == id);
             if (cliente != null)
             {
+                
+                _context.DetallesVenta.RemoveRange(cliente.Ventas.SelectMany(v => v.Detalles)); // Eliminar los detalles de venta asociados
+                _context.Ventas.RemoveRange(cliente.Ventas); // Eliminar las ventas asociadas
                 _context.Clientes.Remove(cliente);
             }
 
