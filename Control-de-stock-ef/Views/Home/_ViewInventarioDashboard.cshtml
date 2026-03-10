@@ -1,5 +1,6 @@
 ﻿@model _ProveedorProductoViewModel
 @{
+
     //calculo de total de articulos en stock
     var cantidad = 0;
     @foreach (var item in Model.Productos)
@@ -21,6 +22,7 @@
     {
         ProveedoresActivos += 1;
     }
+    
 }
 
 
@@ -28,10 +30,11 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Dashboard de inventario</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <button class="btn btn-sm btn-outline-primary me-2" type="button" action="DescargarPdf">
-            <i class="bi bi-download me-1"></i> Exportar reporte
-
-        </button>
+        <form asp-controller="Home" asp-action="DescargarPdf" method="get" class="d-inline">
+            <button class="btn btn-sm btn-outline-primary me-2" type="submit">
+                <i class="bi bi-download me-1"></i> Exportar reporte
+            </button>
+        </form>
         <a class="btn btn-sm btn-primary" asp-controller="Productos" asp-action="Index">
             <i class="bi bi-plus-lg me-1"></i> Añadir al inventario
         </a>

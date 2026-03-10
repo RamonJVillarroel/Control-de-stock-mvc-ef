@@ -2,7 +2,7 @@ using Control_de_stock_ef.Data;
 using Control_de_stock_ef.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using Rotativa.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -36,7 +36,9 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.AccessDeniedPath = "/Usuario/AccessDenied";
 
 });
-
+//configuracion rotatica para pdfs.
+IWebHostEnvironment env = builder.Environment;
+RotativaConfiguration.Setup(env.ContentRootPath, "Rotativa");
 var app = builder.Build();
 
 //invocar el seeder al iniciar la app

@@ -1,0 +1,187 @@
+﻿@model HomeDashboardVM
+@{
+    Layout = null;
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+
+    // Cálculos de Inventario
+    var totalStock = Model.Inventario.Productos.Sum(p => p.StockActual);
+    var productosBajoStock = Model.Inventario.Productos.Count(p => p.StockActual <= p.StockMinimo);
+    var proveedoresActivos = Model.Inventario.Proveedores.Count();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte Ejecutivo - @DateTime.Now.ToString("dd/MM/yyyy")</title>
+    <link rel="stylesheet" href="@baseUrl/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-color: white !important;
+            font-size: 11px;
+            color: #333;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-report {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .bg-light-blue {
+            background-color: #f0f7ff;
+        }
+
+        .bg-light-red {
+            background-color: #fff5f5;
+        }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        /* Evita saltos de página a mitad de una fila */
+        tr {
+            page-break-inside: avoid !important;
+        }
+
+        .section-title {
+            background: #eee;
+            padding: 5px 10px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="report-header d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="text-primary mb-0">ZynNyx - Control de Stock</h2>
+                <p class="text-muted mb-0">Reporte Consolidado de Operaciones</p>
+            </div>
+            <div class="text-end">
+                <strong>Fecha:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")<br />
+                <strong>Usuario:</strong> @User.Identity.Name
+            </div>
+        </div>
+
+        <div class="section-title">Resumen de Inventario</div>
+        <div class="row g-2 mt-1">
+            <div class="col-4">
+                <div class="card-report bg-light-blue">
+                    <small class="text-muted d-block">Total Stock</small>
+                    <h4 class="mb-0">@totalStock</h4>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card-report bg-light-red">
+                    <small class="text-muted d-block">Alertas Stock Bajo</small>
+                    <h4 class="mb-0 text-danger">@productosBajoStock</h4>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card-report">
+                    <small class="text-muted d-block">Proveedores</small>
+                    <h4 class="mb-0">@proveedoresActivos</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Resumen de Ventas</div>
+        <div class="row g-2 mt-1">
+            <div class="col-4">
+                <div class="card-report">
+                    <small class="text-muted d-block">Ventas Realizadas</small>
+                    <h4 class="mb-0">@Model.Ventas.TotalVentasCount</h4>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card-report">
+                    <small class="text-muted d-block">Ingresos Totales</small>
+                    <h4 class="mb-0 text-success">@Model.Ventas.IngresosTotales.ToString("C")</h4>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card-report">
+                    <small class="text-muted d-block">Ticket Promedio</small>
+                    <h4 class="mb-0">@Model.Ventas.TicketPromedio.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Últimos Movimientos de Inventario</div>
+        <table class="table table-sm mt-2">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Tipo</th>
+                    <th class="text-center">Cantidad</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var mov in Model.Inventario.UltimosMovimientos)
+                {
+                    <tr>
+                        <td class="fw-bold">@mov.Producto?.Nombre</td>
+                        <td>@mov.Producto?.Categoria?.Nombre</td>
+                        <td>
+                            <span class="status-dot @(mov.Tipo == TipoMovimiento.Entrada ? "bg-success" : "bg-danger")"></span>
+                            @mov.Tipo
+                        </td>
+                        <td class="text-center @(mov.Tipo == TipoMovimiento.Entrada ? "text-success" : "text-danger")">
+                            @(mov.Tipo == TipoMovimiento.Entrada ? "+" : "-")@mov.Cantidad
+                        </td>
+                        <td class="text-muted">@mov.Fecha.ToString("dd/MM HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="section-title">Ventas Recientes</div>
+        <table class="table table-sm mt-2">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var venta in Model.Ventas.VentasRecientes)
+                {
+                    <tr>
+                        <td class="text-primary">#@venta.Id</td>
+                        <td>@(venta.Cliente?.Nombre ?? "Consumidor Final")</td>
+                        <td class="fw-bold">@venta.PrecioTotal.ToString("C")</td>
+                        <td>@venta.FechaVenta.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="footer mt-5 text-center text-muted" style="font-size: 9px; border-top: 1px solid #eee; padding-top: 10px;">
+            Este documento es un reporte oficial generado por el sistema Control de Stock EF - © @DateTime.Now.Year ZynNyx
+        </div>
+    </div>
+</body>
+</html>

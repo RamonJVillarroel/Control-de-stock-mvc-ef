@@ -26,53 +26,7 @@ namespace Control_de_stock_ef.Controllers
 
         public async Task<IActionResult> Index()
         {
-            
-            var productos = await _context.Productos
-                .Include(p => p.Categoria)
-                .Include(p => p.Proveedor)
-                .Where(p=> p.UsuarioId == _userManager.GetUserId(User))
-                .ToListAsync();
-
-            var proveedores = await _context.Proveedores
-                .Where(p => p.UsuarioId == _userManager.GetUserId(User))
-                .ToListAsync();
-
-            var ultimosMovimientos = await _context.TransaccionesStock
-                .Include(t => t.Producto)
-                .OrderByDescending(t => t.Fecha)
-                .Take(5)
-                .Where(t => t.UsuarioId == _userManager.GetUserId(User))
-                .ToListAsync();
-
-            var datosInventario = new _ProveedorProductoViewModel
-            {
-                Productos = productos,
-                Proveedores = proveedores,
-                UltimosMovimientos = ultimosMovimientos
-            };
-
-            
-            var ventas = await _context.Ventas
-                .Include(v => v.Cliente)
-                .OrderByDescending(v => v.FechaVenta)
-                .Where(v => v.UsuarioId == _userManager.GetUserId(User))
-                .ToListAsync();
-
-            var datosVentas = new DashboardVentasVM
-            {
-                TotalVentasCount = ventas.Count,
-                IngresosTotales = ventas.Sum(v => v.PrecioTotal),
-                TicketPromedio = ventas.Count > 0 ? ventas.Average(v => v.PrecioTotal) : 0,
-                VentasRecientes = ventas.Take(5).ToList()
-            };
-
-            
-            var viewModelFinal = new HomeDashboardVM
-            {
-                Inventario = datosInventario,
-                Ventas = datosVentas
-            };
-
+            var viewModelFinal = await ObtenerDatosDashboardAsync();
             return View(viewModelFinal);
         }
 
@@ -86,35 +40,64 @@ namespace Control_de_stock_ef.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        public ActionResult DescargarPdf()
+        public async Task<IActionResult> DescargarPdf()
         {
-           
-            var model = new HomeDashboardVM
+            var model = await ObtenerDatosDashboardAsync();
+
+            return new ViewAsPdf("ReporteVentasInventarioPdf", model) // Cambiamos "Index" por "ReportePdf"
+            {
+                FileName = $"Reporte_Stock_ventas_{DateTime.Now:yyyyMMdd}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                CustomSwitches = "--print-media-type" // Para que intente cargar estilos de impresión
+            };
+        }
+
+
+        private async Task<HomeDashboardVM> ObtenerDatosDashboardAsync()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var productos = await _context.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Proveedor)
+                .Where(p => p.UsuarioId == userId)
+                .ToListAsync();
+
+            var proveedores = await _context.Proveedores
+                .Where(p => p.UsuarioId == userId)
+                .ToListAsync();
+
+            var ultimosMovimientos = await _context.TransaccionesStock
+                .Include(t => t.Producto)
+                .Where(t => t.UsuarioId == userId)
+                .OrderByDescending(t => t.Fecha)
+                .Take(5)
+                .ToListAsync();
+
+            var ventas = await _context.Ventas
+                .Include(v => v.Cliente)
+                .Where(v => v.UsuarioId == userId)
+                .OrderByDescending(v => v.FechaVenta)
+                .ToListAsync();
+
+            return new HomeDashboardVM
             {
                 Inventario = new _ProveedorProductoViewModel
                 {
-                    Productos = _context.Productos.Include(p => p.Categoria).Include(p => p.Proveedor).Where(p => p.UsuarioId == _userManager.GetUserId(User)).ToList(),
-                    Proveedores = _context.Proveedores.Where(p => p.UsuarioId == _userManager.GetUserId(User)).ToList(),
-                    UltimosMovimientos = _context.TransaccionesStock.Include(t => t.Producto).OrderByDescending(t => t.Fecha).Take(5).Where(t => t.UsuarioId == _userManager.GetUserId(User)).ToList()
+                    Productos = productos,
+                    Proveedores = proveedores,
+                    UltimosMovimientos = ultimosMovimientos
                 },
                 Ventas = new DashboardVentasVM
                 {
-                    TotalVentasCount = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Count(),
-                    IngresosTotales = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Sum(v => v.PrecioTotal),
-                    TicketPromedio = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Count() > 0 ? _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Average(v => v.PrecioTotal) : 0,
-                    VentasRecientes = _context.Ventas.Include(v => v.Cliente).OrderByDescending(v => v.FechaVenta).Take(5).Where(v => v.UsuarioId == _userManager.GetUserId(User)).ToList()
+                    TotalVentasCount = ventas.Count,
+                    IngresosTotales = ventas.Sum(v => v.PrecioTotal),
+                    TicketPromedio = ventas.Count > 0 ? ventas.Average(v => v.PrecioTotal) : 0,
+                    VentasRecientes = ventas.Take(5).ToList()
                 }
             };
-
-            return new ViewAsPdf("Index", model)
-            {
-                FileName = "Dashboard.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
-            };
-
         }
-
 
     }
 }
