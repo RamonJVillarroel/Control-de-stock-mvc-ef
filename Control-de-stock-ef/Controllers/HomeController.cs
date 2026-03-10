@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+//using Rotativa;
+using Rotativa.AspNetCore;
 using System.Diagnostics;
 
 namespace Control_de_stock_ef.Controllers
@@ -84,7 +86,35 @@ namespace Control_de_stock_ef.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        public ActionResult DescargarPdf()
+        {
+           
+            var model = new HomeDashboardVM
+            {
+                Inventario = new _ProveedorProductoViewModel
+                {
+                    Productos = _context.Productos.Include(p => p.Categoria).Include(p => p.Proveedor).Where(p => p.UsuarioId == _userManager.GetUserId(User)).ToList(),
+                    Proveedores = _context.Proveedores.Where(p => p.UsuarioId == _userManager.GetUserId(User)).ToList(),
+                    UltimosMovimientos = _context.TransaccionesStock.Include(t => t.Producto).OrderByDescending(t => t.Fecha).Take(5).Where(t => t.UsuarioId == _userManager.GetUserId(User)).ToList()
+                },
+                Ventas = new DashboardVentasVM
+                {
+                    TotalVentasCount = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Count(),
+                    IngresosTotales = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Sum(v => v.PrecioTotal),
+                    TicketPromedio = _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Count() > 0 ? _context.Ventas.Where(v => v.UsuarioId == _userManager.GetUserId(User)).Average(v => v.PrecioTotal) : 0,
+                    VentasRecientes = _context.Ventas.Include(v => v.Cliente).OrderByDescending(v => v.FechaVenta).Take(5).Where(v => v.UsuarioId == _userManager.GetUserId(User)).ToList()
+                }
+            };
 
-       
+            return new ViewAsPdf("Index", model)
+            {
+                FileName = "Dashboard.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
+            };
+
+        }
+
+
     }
 }
